@@ -4,13 +4,29 @@ import {
   ComponentProps,
 } from "streamlit-component-lib"
 import React, { useCallback, useEffect, useMemo, useState, ReactElement } from "react"
+import VideoJS from "./VideoJS"
+import videojs from 'video.js';
 
 /**
  * This is a React-based component template. The passed props are coming from the 
  * Streamlit library. Your custom args can be accessed via the `args` props.
  */
 function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
-  const { name } = args
+  const { video_url } = args
+
+  console.log("video_url", video_url)
+  const playerRef = React.useRef(null);
+  const videoJsOptions = {
+    autoplay: 'muted',
+    controls: true,
+    responsive: true,
+    fluid: true,
+    playsinline: true,
+    sources: [{
+      src: video_url,
+      type: 'video/mp4'
+    }]
+  };
 
   const [isFocused, setIsFocused] = useState(false)
   const [numClicks, setNumClicks] = useState(0)
@@ -23,6 +39,19 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
     const borderStyling = `1px solid ${isFocused ? theme.primaryColor : "gray"}`
     return { border: borderStyling, outline: borderStyling }
   }, [theme, isFocused])
+
+  const handlePlayerReady = (player: any) => {
+    playerRef.current = player;
+
+    // You can handle player events here, for example:
+    player.on('waiting', () => {
+      videojs.log('player is waiting');
+    });
+
+    player.on('dispose', () => {
+      videojs.log('player will dispose');
+    });
+  };
 
   useEffect(() => {
     Streamlit.setComponentValue(numClicks)
@@ -53,20 +82,32 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
   // When the button is clicked, we'll increment our "numClicks" state
   // variable, and send its new value back to Streamlit, where it'll
   // be available to the Python program.
+  // return (
+  //   <span>
+  //     Hello, {video_url}! &nbsp;
+  //     <button
+  //       style={style}
+  //       onClick={onClicked}
+  //       disabled={disabled}
+  //       onFocus={onFocus}
+  //       onBlur={onBlur}
+  //     >
+  //       Click Me!
+  //     </button>
+  //   </span>
+  // )
+  // return (
+  //   <span>
+  //     Hello, {video_url}! &nbsp;
+  //   </span>
+  // )
   return (
-    <span>
-      Hello, {name}! &nbsp;
-      <button
-        style={style}
-        onClick={onClicked}
-        disabled={disabled}
-        onFocus={onFocus}
-        onBlur={onBlur}
-      >
-        Click Me!
-      </button>
-    </span>
-  )
+    <>
+      <div>Rest of app here</div>
+      <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
+      <div>Rest of app here</div>
+    </>
+  );
 }
 
 // "withStreamlitConnection" is a wrapper function. It bootstraps the
