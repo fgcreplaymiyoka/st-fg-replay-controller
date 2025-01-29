@@ -3,9 +3,10 @@ import {
   withStreamlitConnection,
   ComponentProps,
 } from "streamlit-component-lib"
-import React, { useCallback, useEffect, useMemo, useState, ReactElement } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState, ReactElement } from "react"
 import VideoJS from "./VideoJS"
 import videojs from 'video.js';
+import Player from 'video.js/dist/types/player';
 
 /**
  * This is a React-based component template. The passed props are coming from the 
@@ -15,7 +16,8 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
   const { video_url } = args
 
   console.log("video_url", video_url)
-  const playerRef = React.useRef(null);
+  const playerRef = React.useRef<Player | null>(null);
+  const playPauseButtonRef = useRef<HTMLButtonElement | null>(null);
   const videoJsOptions = {
     autoplay: 'muted',
     controls: true,
@@ -40,7 +42,7 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
     return { border: borderStyling, outline: borderStyling }
   }, [theme, isFocused])
 
-  const handlePlayerReady = (player: any) => {
+  const handlePlayerReady = (player: Player) => {
     playerRef.current = player;
 
     // You can handle player events here, for example:
@@ -50,6 +52,14 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
 
     player.on('dispose', () => {
       videojs.log('player will dispose');
+    });
+
+    player.on('play', function () {
+      playPauseButtonRef.current!.innerHTML = "pause";
+    });
+
+    player.on('pause', function () {
+      playPauseButtonRef.current!.innerHTML = "play";
     });
   };
 
@@ -65,7 +75,12 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
 
   /** Click handler for our "Click Me!" button. */
   const onClicked = useCallback((): void => {
-    setNumClicks((prevNumClicks) => prevNumClicks + 1)
+    // setNumClicks((prevNumClicks) => prevNumClicks + 1)
+    if (playerRef.current?.paused()) {
+      playerRef.current?.play();
+    } else {
+      playerRef.current?.pause();
+    }
   }, [])
 
   /** Focus handler for our "Click Me!" button. */
@@ -105,7 +120,7 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
     <>
       <div>Rest of app here</div>
       <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
-      <div>Rest of app here</div>
+      <button ref={playPauseButtonRef} onClick={onClicked}>Play</button>
     </>
   );
 }
