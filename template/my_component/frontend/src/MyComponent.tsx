@@ -83,6 +83,14 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
     }
   }, [])
 
+  const movePosition = useCallback((seconds: number): void => {
+    const player = playerRef.current;
+    if (player) {
+      var currentTime = player?.currentTime() ?? 0
+      player.currentTime(currentTime + seconds);
+    }
+  }, []);
+
   /** Focus handler for our "Click Me!" button. */
   const onFocus = useCallback((): void => {
     setIsFocused(true)
@@ -121,6 +129,12 @@ function MyComponent({ args, disabled, theme }: ComponentProps): ReactElement {
       <div>Rest of app here</div>
       <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
       <button ref={playPauseButtonRef} onClick={onClicked}>Play</button>
+      <button onClick={() => movePosition(-5)}>-5 sec</button>
+      <button onClick={() => movePosition(-1)}>-1 sec</button>
+      <button onClick={() => movePosition(-0.016)}>-1 frame</button>
+      <button onClick={() => movePosition(0.016)}>+1 frame</button>
+      <button onClick={() => movePosition(1)}>+1 sec</button>
+      <button onClick={() => movePosition(5)}>+5 sec</button>
     </>
   );
 }
